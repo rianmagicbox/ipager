@@ -47,9 +47,9 @@ void setup() {
   display.display();
   delay(1000);
 
-  testscrolltext();    
+  //testscrolltext();    
 
-  testdrawchar();
+  //testdrawchar();
   
   Serial.println(F("RF24/examples/GettingStarted"));
 
@@ -89,6 +89,7 @@ void loop() {
     int i = 0;
     while (i<tamanho) {
       report = radio.write(&mensagem[i], sizeof(char));
+      delay(500);
       i = i + 1;
     }
     unsigned long end_timer = micros();                    //  termina o timer              
@@ -112,7 +113,8 @@ void loop() {
     uint8_t pipe;
     if (radio.available(&pipe)) {             
       radio.read(&letraRecebida, sizeof(char));            
-      Serial.println(letraRecebida);                
+      Serial.println(letraRecebida); 
+      testscrolltext();               
     }
   } 
 
@@ -161,7 +163,7 @@ void testscrolltext(void) {
   display.setTextSize(1); // Draw 2X-scale text
   display.setTextColor(SSD1306_WHITE);
   display.setCursor(10, 0);
-  display.println(F("ola amigo voce quer jogar? se quiser me avisa e qual jogo nos vamos jogar?"));
+  display.println(letraRecebida);
   display.display();      // Show initial text
   delay(100);
 }
