@@ -29,6 +29,10 @@ char mensagem[] = "1234567890123456789012345678901234567890"; // payload é prat
 char letraRecebida;
 
 int tamanho = sizeof(mensagem);
+
+int coluna = 0;
+int linha = 0;
+
 void setup() {
 
   Serial.begin(115200);
@@ -46,6 +50,8 @@ void setup() {
   }
   display.display();
   delay(1000);
+  display.clearDisplay();
+  display.display();
 
   //testscrolltext();    
 
@@ -158,12 +164,21 @@ void testdrawchar(void) {
 }
 
 void testscrolltext(void) {
-  display.clearDisplay();
+  //display.clearDisplay();
 
   display.setTextSize(1); // Draw 2X-scale text
   display.setTextColor(SSD1306_WHITE);
-  display.setCursor(10, 0);
-  display.println(letraRecebida);
+  display.setCursor(coluna, linha);
+  display.print(letraRecebida);
   display.display();      // Show initial text
   delay(100);
+  coluna = coluna + 8;
+  if(coluna>=128){
+    coluna = 0;
+    linha = linha + 8;
+  }
+  if(linha>=64){
+    linha = 0;
+    display.clearDisplay(); 
+  }
 }
