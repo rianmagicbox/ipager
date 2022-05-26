@@ -32,9 +32,10 @@ void loop() {
   delay(2);
 }
 
-const int linha1 = 30;
-const int linha2 = 40;
-const int linha3 = 50;
+const int linha1 = 25;
+const int linha2 = 35;
+const int linha3 = 45;
+const int linha4 = 55;
 
 void testscrolltext(void) {
   display.clearDisplay();
@@ -49,7 +50,7 @@ void testscrolltext(void) {
   display.setCursor(10, linha1);   display.print("w");
   display.drawLine(8, linha1 -2, 8, linha3 +8, SSD1306_WHITE);
   display.setCursor(18, linha1);  display.print("e");
-  display.drawLine(16, linha1 -2, 16, linha3 +8, SSD1306_WHITE);
+  display.drawLine(16, linha1 -2, 16, linha3 +20, SSD1306_WHITE);
   display.setCursor(26, linha1);  display.print("r");
   display.drawLine(24, linha1 -2, 24, linha3 +8, SSD1306_WHITE);
   display.setCursor(34, linha1);  display.print("t");
@@ -59,7 +60,7 @@ void testscrolltext(void) {
   display.setCursor(50, linha1);  display.print("u");
   display.drawLine(48, linha1 -2, 48, linha3 +8, SSD1306_WHITE);
   display.setCursor(58, linha1);  display.print("i");
-  display.drawLine(56, linha1 -2, 56, linha3 +8, SSD1306_WHITE);
+  display.drawLine(56, linha1 -2, 56, linha3 +20, SSD1306_WHITE);
   display.setCursor(66, linha1);  display.print("o");
   display.drawLine(64, linha1 -2, 64, linha3 +8, SSD1306_WHITE);
   display.setCursor(74, linha1);  display.print("p");
@@ -78,7 +79,7 @@ void testscrolltext(void) {
   display.setCursor(58, linha2);  display.print("k");
   display.setCursor(66, linha2);  display.print("l");
 
-  display.drawLine(0, linha3 -2, 128, linha3 -2, SSD1306_WHITE);
+  display.drawLine(0, linha3 -2, 72, linha3 -2, SSD1306_WHITE);
    
   display.setCursor(2, linha3);   display.print("z");
   display.setCursor(10, linha3);   display.print("x");
@@ -87,11 +88,12 @@ void testscrolltext(void) {
   display.setCursor(34, linha3);  display.print("b");
   display.setCursor(42, linha3);  display.print("n");
   display.setCursor(50, linha3);  display.print("m");
-
+  
   display.drawLine(0, linha3 +8, 128, linha3 +8, SSD1306_WHITE);
 
+  display.setCursor(21, linha4 - 1);  display.print("space");
 
-
+  display.drawLine(0, linha4 +8, 128, linha4 +8, SSD1306_WHITE);
 
   display.display();      // Show initial text
   delay(100);
