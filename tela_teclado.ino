@@ -36,7 +36,6 @@ void loop() {
 const int linha1 = 36;
 const int linha2 = 46;
 const int linha3 = 56;
-//const int linha4 = 56;
 
 void testscrolltext(void) {
   display.clearDisplay();
