@@ -1,4 +1,3 @@
-
 #include <SPI.h>
 #include <Wire.h>
 #include <Adafruit_GFX.h>
@@ -11,6 +10,20 @@
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);       
+
+const int VRX = A0; 
+const int VRY = A1; 
+const int pinButton = A2;
+
+int X = 0;        
+int Y = 0;
+int button = 0;  
+
+int tamX = 7;
+
+const int linha1 = 36;
+const int linha2 = 46;
+const int linha3 = 56;
 
 void setup() {
   Serial.begin(9600);
@@ -26,16 +39,63 @@ void setup() {
   delay(1000);
 }
 
+int cursorX = 1;
+int cursorY = 35;
+
 void loop() {
+  
+  X = analogRead(VRX);
+  Y = analogRead(VRY); 
+  button = digitalRead(pinButton);
+
+  Serial.print("X = ");
+  Serial.print(X);
+  Serial.print("\t Y = ");
+  Serial.print(Y);
+  Serial.print("\t button = ");
+  Serial.print(button);
+
+  Serial.print(" cursorX = ");
+  Serial.print(cursorX);
+  Serial.print(" cursorY = ");
+  Serial.println(cursorY);
+
+  delay(100);
+  //space
+  if (cursorX >= 57 && cursorX <= 87 && cursorY == linha3 - 1) {
+    tamX = 31;
+    cursorX = 57;
+    //ok
+  } else if (cursorX >= 73 && cursorX <= 87 && cursorY == linha2 - 1) {
+    tamX = 15;
+    cursorX = 73;
+    //backspace
+  } else if (cursorX >= 81 && cursorX <= 95 && cursorY == linha1 - 1) {
+    tamX = 15;
+    cursorX = 81;
+  } else { 
+    tamX = 7;
+  }
+
+  if (X>600) {
+    cursorX = constrain(cursorX + tamX + 1, 1, 121);
+  }
+  if (X<400) {
+    cursorX = constrain(cursorX - 8, 1, 121);
+  }
+  if (Y>600) {
+    cursorY = constrain(cursorY + 10, linha1, linha3 - 1);
+  }
+  if (Y<400) {
+    cursorY = constrain(cursorY - 10, linha1 - 1, linha3);
+  }
   
   testscrolltext();
   
   delay(2);
 }
 
-const int linha1 = 36;
-const int linha2 = 46;
-const int linha3 = 56;
+
 
 void testscrolltext(void) {
   display.clearDisplay();
@@ -44,8 +104,10 @@ void testscrolltext(void) {
   display.setTextColor(SSD1306_WHITE);
 
   display.drawLine(0, linha1 -2, 128, linha1 -2, SSD1306_WHITE);
+
+  display.fillRect(cursorX, cursorY, tamX, 9, SSD1306_WHITE);
   
-  display.setCursor(2, linha1);   display.print("Q");
+  display.setCursor(2, linha1); display.setTextColor(SSD1306_INVERSE);  display.print("Q");
   display.drawLine(0, linha1 -2, 0, linha3 +8, SSD1306_WHITE);
   display.setCursor(10, linha1);   display.print("W");
   display.drawLine(8, linha1 -2, 8, linha3 +8, SSD1306_WHITE);
@@ -118,16 +180,13 @@ void testscrolltext(void) {
   
   
   //del
-  display.fillRect(83, 38, 12, 3, SSD1306_WHITE);
-  display.drawLine(85, 36, 85, 42, SSD1306_WHITE);
-  display.drawLine(84, 37, 84, 41, SSD1306_WHITE);
-  display.drawLine(82, 39, 82, 39, SSD1306_WHITE);
+  display.fillRect(86, 38, 9, 3, SSD1306_INVERSE);
+  display.fillTriangle(82, 39, 85, 42, 85, 36, SSD1306_INVERSE);
   //del
 
   //casplock
-  display.fillRect(99, 37, 3, 6, SSD1306_WHITE);
-  display.drawLine(98, 38, 102, 38, SSD1306_WHITE);
-  display.drawLine(100, 36, 100, 36, SSD1306_WHITE);
+  display.fillRect(99, 39, 3, 4, SSD1306_INVERSE);
+  display.fillTriangle(98, 38, 102, 38, 100, 36, SSD1306_INVERSE);
   //casplock
   
   display.drawLine(88, 44, 88, 64, SSD1306_WHITE);
@@ -143,5 +202,4 @@ void testscrolltext(void) {
     display.setCursor(0, 26); display.print("M");
 
   display.display();      // Show initial text
-  delay(100);
 }
