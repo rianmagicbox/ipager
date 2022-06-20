@@ -45,10 +45,10 @@ void setup() {
 int cursorX = 1;
 int cursorY = 35;
 
-char mapaTeclado[3][4] = {
-  "QWE",
-  "ASD",
-  "ZXC" 
+char mapaTeclado[3][16] = {
+  "QWERTYUIOP   789",
+  "ASDFGHJKL  ?!456",
+  "ZXCVBNM ,0123" 
 };
 
 char cursorXYParaLetra (int X, int Y) {
