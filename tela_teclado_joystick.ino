@@ -15,6 +15,9 @@ const int VRX = A0;
 const int VRY = A1; 
 const int pinButton = A2;
 
+char texto[32] = "marmelada";
+int posicaoDoTexto = 0;
+
 int X = 0;        
 int Y = 0;
 int button = 0;  
@@ -41,6 +44,36 @@ void setup() {
 
 int cursorX = 1;
 int cursorY = 35;
+
+char mapaTeclado[3][4] = {
+  "QWE",
+  "ASD",
+  "ZXC" 
+};
+
+char cursorXYParaLetra (int X, int Y) {
+  int linha;
+  int coluna;
+  if (Y == 35){
+    linha = 0;  
+  } else if (Y == 45){
+    linha = 1;
+  } else if (Y == 55){
+    linha = 2;
+  }
+
+  coluna = X / 8;
+  Serial.print("X = ");
+  Serial.print(X);
+  Serial.print("Y = ");
+  Serial.print(Y);
+  Serial.print("linha = ");
+  Serial.print(linha);
+  Serial.print("coluna = ");
+  Serial.println(coluna);
+  
+  return mapaTeclado[linha][coluna];
+}
 
 void loop() {
   
@@ -198,8 +231,12 @@ void testscrolltext(void) {
 
   display.setCursor(1, 1); display.print("FULANO");
 
-    display.setCursor(0, 18); display.print("M");
-    display.setCursor(0, 26); display.print("M");
+  if (button == 0) {
+    texto[posicaoDoTexto] = cursorXYParaLetra(cursorX, cursorY);
+    posicaoDoTexto = posicaoDoTexto + 1;
+  }
+
+    display.setCursor(1, 18); display.print(texto);
 
   display.display();      // Show initial text
 }
