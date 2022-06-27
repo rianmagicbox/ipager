@@ -15,8 +15,9 @@ const int VRX = A0;
 const int VRY = A1; 
 const int pinButton = A2;
 
-char texto[32] = "marmelada";
+char texto[32] = "";
 int posicaoDoTexto = 0;
+bool capslockOn = false;
 
 int X = 0;        
 int Y = 0;
@@ -45,11 +46,15 @@ void setup() {
 int cursorX = 1;
 int cursorY = 35;
 
-char mapaTeclado[3][16] = {
-  "QWERTYUIOP   789",
+char mapaTeclado[2][3][16] = {{
+  "QWERTYUIOP  +789",
   "ASDFGHJKL  ?!456",
   "ZXCVBNM ,0123" 
-};
+},{
+  "qwertyuiop  +789",
+  "asdfghjkl  ?!456",
+  "zxcvbnm ,0123"
+}};
 
 char cursorXYParaLetra (int X, int Y) {
   int linha;
@@ -61,18 +66,28 @@ char cursorXYParaLetra (int X, int Y) {
   } else if (Y == 55){
     linha = 2;
   }
-
-  coluna = X / 8;
-  Serial.print("X = ");
-  Serial.print(X);
-  Serial.print("Y = ");
-  Serial.print(Y);
-  Serial.print("linha = ");
-  Serial.print(linha);
-  Serial.print("coluna = ");
-  Serial.println(coluna);
   
-  return mapaTeclado[linha][coluna];
+  coluna = X / 8;
+  
+  char letra = mapaTeclado[capslockOn][linha][coluna];
+  
+  Serial.print(" X = ");
+  Serial.print(X);
+  Serial.print(" Y = ");
+  Serial.print(Y);
+  Serial.print(" linha = ");
+  Serial.print(linha);
+  Serial.print(" coluna = ");
+  Serial.print(coluna);
+  Serial.print(" letra = ");
+  Serial.println(letra);
+
+  if (letra == '+') {
+    capslockOn = !capslockOn;
+    return '\0';
+  }
+  
+  return mapaTeclado[capslockOn][linha][coluna];
 }
 
 void loop() {
@@ -81,7 +96,7 @@ void loop() {
   Y = analogRead(VRY); 
   button = digitalRead(pinButton);
 
-  Serial.print("X = ");
+  /*Serial.print("X = ");
   Serial.print(X);
   Serial.print("\t Y = ");
   Serial.print(Y);
@@ -91,7 +106,7 @@ void loop() {
   Serial.print(" cursorX = ");
   Serial.print(cursorX);
   Serial.print(" cursorY = ");
-  Serial.println(cursorY);
+  Serial.println(cursorY);*/
 
   delay(100);
   //space
@@ -140,25 +155,25 @@ void testscrolltext(void) {
 
   display.fillRect(cursorX, cursorY, tamX, 9, SSD1306_WHITE);
   
-  display.setCursor(2, linha1); display.setTextColor(SSD1306_INVERSE);  display.print("Q");
+  display.setCursor(2, linha1); display.setTextColor(SSD1306_INVERSE);  display.print(capslockOn ? "q" : "Q");
   display.drawLine(0, linha1 -2, 0, linha3 +8, SSD1306_WHITE);
-  display.setCursor(10, linha1);   display.print("W");
+  display.setCursor(10, linha1);   display.print(capslockOn ? "w" : "W");
   display.drawLine(8, linha1 -2, 8, linha3 +8, SSD1306_WHITE);
-  display.setCursor(18, linha1);  display.print("E");
+  display.setCursor(18, linha1);  display.print(capslockOn ? "e" : "E");
   display.drawLine(16, linha1 -2, 16, linha3 +20, SSD1306_WHITE);
-  display.setCursor(26, linha1);  display.print("R");
+  display.setCursor(26, linha1);  display.print(capslockOn ? "r" : "R");
   display.drawLine(24, linha1 -2, 24, linha3 +8, SSD1306_WHITE);
-  display.setCursor(34, linha1);  display.print("T");
+  display.setCursor(34, linha1);  display.print(capslockOn ? "t" : "T");
   display.drawLine(32, linha1 -2, 32, linha3 +8, SSD1306_WHITE);
-  display.setCursor(42, linha1);  display.print("Y");
+  display.setCursor(42, linha1);  display.print(capslockOn ? "y" : "Y");
   display.drawLine(40, linha1 -2, 40, linha3 +8, SSD1306_WHITE);
-  display.setCursor(50, linha1);  display.print("U");
+  display.setCursor(50, linha1);  display.print(capslockOn ? "u" : "U");
   display.drawLine(48, linha1 -2, 48, linha3 +8, SSD1306_WHITE);
-  display.setCursor(58, linha1);  display.print("I");
+  display.setCursor(58, linha1);  display.print(capslockOn ? "i" : "I");
   display.drawLine(56, linha1 -2, 56, linha3 +20, SSD1306_WHITE);
-  display.setCursor(66, linha1);  display.print("O");
+  display.setCursor(66, linha1);  display.print(capslockOn ? "o" : "O");
   display.drawLine(64, linha1 -2, 64, linha2 +8, SSD1306_WHITE);
-  display.setCursor(74, linha1);  display.print("P");
+  display.setCursor(74, linha1);  display.print(capslockOn ? "p" : "P");
   display.drawLine(72, linha1 -2, 72, linha2 +8, SSD1306_WHITE);
   display.drawLine(80, linha1 -2, 80, linha1 +8, SSD1306_WHITE);
   display.drawLine(96, linha1 -2, 96, linha3 +8, SSD1306_WHITE);
@@ -168,25 +183,25 @@ void testscrolltext(void) {
 
   display.drawLine(0, linha2 -2, 128, linha2 -2, SSD1306_WHITE);
   
-  display.setCursor(2, linha2);   display.print("A");
-  display.setCursor(10, linha2);   display.print("S");
-  display.setCursor(18, linha2);  display.print("D");
-  display.setCursor(26, linha2);  display.print("F");
-  display.setCursor(34, linha2);  display.print("G");
-  display.setCursor(42, linha2);  display.print("H");
-  display.setCursor(50, linha2);  display.print("J");
-  display.setCursor(58, linha2);  display.print("K");
-  display.setCursor(66, linha2);  display.print("L");
+  display.setCursor(2, linha2);   display.print(capslockOn ? "a" : "A");
+  display.setCursor(10, linha2);   display.print(capslockOn ? "s" : "S");
+  display.setCursor(18, linha2);  display.print(capslockOn ? "d" : "D");
+  display.setCursor(26, linha2);  display.print(capslockOn ? "f" : "F");
+  display.setCursor(34, linha2);  display.print(capslockOn ? "g" : "G");
+  display.setCursor(42, linha2);  display.print(capslockOn ? "h" : "H");
+  display.setCursor(50, linha2);  display.print(capslockOn ? "j" : "J");
+  display.setCursor(58, linha2);  display.print(capslockOn ? "k" : "K");
+  display.setCursor(66, linha2);  display.print(capslockOn ? "l" : "L");
 
   display.drawLine(0, linha3 -2, 128, linha3 -2, SSD1306_WHITE);
    
-  display.setCursor(2, linha3);   display.print("Z");
-  display.setCursor(10, linha3);  display.print("X");
-  display.setCursor(18, linha3);  display.print("C");
-  display.setCursor(26, linha3);  display.print("V");
-  display.setCursor(34, linha3);  display.print("B");
-  display.setCursor(42, linha3);  display.print("N");
-  display.setCursor(50, linha3);  display.print("M");
+  display.setCursor(2, linha3);   display.print(capslockOn ? "z" : "Z");
+  display.setCursor(10, linha3);  display.print(capslockOn ? "x" : "X");
+  display.setCursor(18, linha3);  display.print(capslockOn ? "c" : "C");
+  display.setCursor(26, linha3);  display.print(capslockOn ? "v" : "V");
+  display.setCursor(34, linha3);  display.print(capslockOn ? "b" : "B");
+  display.setCursor(42, linha3);  display.print(capslockOn ? "n" : "N");
+  display.setCursor(50, linha3);  display.print(capslockOn ? "m" : "M");
   
   display.drawLine(0, linha3 +8, 128, linha3 +8, SSD1306_WHITE);
 
@@ -232,8 +247,13 @@ void testscrolltext(void) {
   display.setCursor(1, 1); display.print("FULANO");
 
   if (button == 0) {
-    texto[posicaoDoTexto] = cursorXYParaLetra(cursorX, cursorY);
-    posicaoDoTexto = posicaoDoTexto + 1;
+    char letra = cursorXYParaLetra(cursorX, cursorY);
+    if (letra != '\0') {
+      texto[posicaoDoTexto] = letra;
+      posicaoDoTexto = posicaoDoTexto + 1;
+    } else {
+      Serial.println("letra especial");
+    }
   }
 
     display.setCursor(1, 18); display.print(texto);
