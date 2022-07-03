@@ -47,13 +47,13 @@ int cursorX = 1;
 int cursorY = 35;
 
 char mapaTeclado[2][3][16] = {{
-  "QWERTYUIOP  +789",
+  "QWERTYUIOP- +789",
   "ASDFGHJKL  ?!456",
-  "ZXCVBNM ,0123" 
+  "ZXCVBNM    ,0123" 
 },{
-  "qwertyuiop  +789",
+  "qwertyuiop- +789",
   "asdfghjkl  ?!456",
-  "zxcvbnm ,0123"
+  "zxcvbnm    ,0123"
 }};
 
 char cursorXYParaLetra (int X, int Y) {
@@ -70,22 +70,13 @@ char cursorXYParaLetra (int X, int Y) {
   coluna = X / 8;
   
   char letra = mapaTeclado[capslockOn][linha][coluna];
-  
-  Serial.print(" X = ");
-  Serial.print(X);
-  Serial.print(" Y = ");
-  Serial.print(Y);
+
   Serial.print(" linha = ");
   Serial.print(linha);
   Serial.print(" coluna = ");
   Serial.print(coluna);
   Serial.print(" letra = ");
   Serial.println(letra);
-
-  if (letra == '+') {
-    capslockOn = !capslockOn;
-    return '\0';
-  }
   
   return mapaTeclado[capslockOn][linha][coluna];
 }
@@ -95,18 +86,6 @@ void loop() {
   X = analogRead(VRX);
   Y = analogRead(VRY); 
   button = digitalRead(pinButton);
-
-  /*Serial.print("X = ");
-  Serial.print(X);
-  Serial.print("\t Y = ");
-  Serial.print(Y);
-  Serial.print("\t button = ");
-  Serial.print(button);
-
-  Serial.print(" cursorX = ");
-  Serial.print(cursorX);
-  Serial.print(" cursorY = ");
-  Serial.println(cursorY);*/
 
   delay(100);
   //space
@@ -247,16 +226,24 @@ void testscrolltext(void) {
   display.setCursor(1, 1); display.print("FULANO");
 
   if (button == 0) {
+    //Serial.print("cursor = ");
+    Serial.print(posicaoDoTexto);
     char letra = cursorXYParaLetra(cursorX, cursorY);
-    if (letra != '\0') {
+    if (letra == '-') {
+      posicaoDoTexto = posicaoDoTexto - 1;
+      texto[posicaoDoTexto] = '\0';
+      Serial.println("BackSpace");
+    } else if (letra== '+') {
+      capslockOn = !capslockOn;
+      Serial.println("CapsLock");
+    } else {
       texto[posicaoDoTexto] = letra;
       posicaoDoTexto = posicaoDoTexto + 1;
-    } else {
-      Serial.println("letra especial");
     }
+    Serial.println(texto);   
   }
-
-    display.setCursor(1, 18); display.print(texto);
+    
+  display.setCursor(1, 18); display.print(texto);
 
   display.display();      // Show initial text
 }
