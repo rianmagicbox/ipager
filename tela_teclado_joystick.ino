@@ -1,27 +1,49 @@
-#include <SPI.h>
+
+
+
+bool radioNumber = 0; //indentificador do transmissor, se ele é o "0" ou o "1". 
+
+
+#include <SPI.h>    
+#include "printf.h"
+#include "RF24.h"
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
-
 #define OLED_RESET     4 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);       
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 const int VRX = A0; 
 const int VRY = A1; 
 const int pinButton = A2;
 
+RF24 radio(9, 10); //o pino 9 é conecado no CE, e o pino 10 no CSN
+//#define RF_CE_PIN     9
+//#define RF_CSN_PIN   10
+//#define RF_MOSI_PIN  11
+//#define RF_MISO_PIN  12
+//#define RF_SCK_PIN   13
+
+uint8_t address[][6] = {"1Node", "2Node"};
+
+bool role = radioNumber;  
+
+char mensagem[] = "1234567890"; // payload é praticamente o que ele vai escrever no radio ...quer jogar minecraft hoje a noite depois da chuva de meteoros que vai cair apos o eclipse lunar egipcico.
+char letraRecebida;
+
 char texto[32] = "";
 int posicaoDoTexto = 0;
 bool capslockOn = false;
 
+int tamanho = sizeof(mensagem);
+
 int X = 0;        
 int Y = 0;
-int button = 0;  
+int button = 0;
 
 int tamX = 7;
 
@@ -32,16 +54,41 @@ const int linha3 = 56;
 void setup() {
   Serial.begin(9600);
   pinMode(A2, INPUT_PULLUP);
-
+  while (!Serial) {
+  }
+  
   if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
     Serial.println(F("SSD1306 allocation failed"));
     for(;;); // Don't proceed, loop forever
   }
+  if (!radio.begin()) {
+    Serial.println(F("radio hardware is not responding!!"));
+    while (1) {}
+  }
+  
+  Serial.println(F("RF24/examples/GettingStarted"));
 
   display.display();
+  Serial.print(F("radioNumber = "));
+  Serial.println((int)radioNumber);
 
-  delay(1000);
-}
+  radio.setAutoAck(false);
+  //radio.setChannel(108);
+  //radio.setDataRate(RF24_250KBPS);
+  radio.setPALevel(RF24_PA_LOW);
+
+  radio.setPayloadSize(32); // aqui se eu não me engano ele esta vendo o tamanho da mensagem payload 
+
+  radio.openWritingPipe(address[radioNumber]);    
+
+  radio.openReadingPipe(1, address[!radioNumber]);
+//     ↓ define o cargo (se ele esta trasmitindo ou recebendo)
+  if (role) {
+    radio.stopListening();  
+  } else {
+    radio.startListening(); 
+  } 
+} 
 
 int cursorX = 1;
 int cursorY = 35;
@@ -82,12 +129,12 @@ char cursorXYParaLetra (int X, int Y) {
 }
 
 void loop() {
-  
   X = analogRead(VRX);
   Y = analogRead(VRY); 
   button = digitalRead(pinButton);
 
-  delay(100);
+  //delay(100);
+
   //space
   if (cursorX >= 57 && cursorX <= 87 && cursorY == linha3 - 1) {
     tamX = 31;
@@ -120,9 +167,55 @@ void loop() {
   testscrolltext();
   
   delay(2);
+  
+  if (role) {
+
+    unsigned long start_timer = micros();                  // começa o timer
+    bool report = false;
+    int i = 0;
+    while (i<tamanho) {
+      report = radio.write(&mensagem[i], sizeof(char));
+      delay(50);
+      i = i + 1;
+    }
+    unsigned long end_timer = micros();                    //  termina o timer              
+    
+    if (report) {
+      Serial.print(F("Transmission successful! "));          
+      Serial.print(F("Time to transmit = "));
+      Serial.print(end_timer - start_timer);                 
+      Serial.print(F(" us. Sent: "));
+      Serial.println(mensagem);                               
+      //payload += 0.01;                                       
+    } else {
+      Serial.println(F("Transmission failed or timed out")); 
+    }
+
+    delay(1000);  
+
+  } else {
+   
+
+    uint8_t pipe;
+    if (radio.available(&pipe)) {             
+      radio.read(&letraRecebida, sizeof(char));            
+      Serial.println(letraRecebida); 
+      testscrolltext();               
+    }
+  } 
+    
+  if (radioNumber == 0 && !role) {
+   
+    role = true;
+    radio.stopListening();
+
+  } else if (radioNumber == 1 && role) {
+  
+
+    role = false;
+    radio.startListening();
+  }
 }
-
-
 
 void testscrolltext(void) {
   display.clearDisplay();
@@ -225,15 +318,14 @@ void testscrolltext(void) {
 
   display.setCursor(1, 1); display.print("FULANO");
 
-  if (button == 0) {
-    //Serial.print("cursor = ");
+  /*if (button == 0) {
     Serial.print(posicaoDoTexto);
     char letra = cursorXYParaLetra(cursorX, cursorY);
     if (letra == '-') {
       posicaoDoTexto = posicaoDoTexto - 1;
       texto[posicaoDoTexto] = '\0';
       Serial.println("BackSpace");
-    } else if (letra== '+') {
+    } else if (letra == '+') {
       capslockOn = !capslockOn;
       Serial.println("CapsLock");
     } else {
@@ -241,7 +333,7 @@ void testscrolltext(void) {
       posicaoDoTexto = posicaoDoTexto + 1;
     }
     Serial.println(texto);   
-  }
+  }*/
     
   display.setCursor(1, 18); display.print(texto);
 
