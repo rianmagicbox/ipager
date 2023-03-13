@@ -28,14 +28,17 @@ const int pinButton = A2;
 
 uint8_t address[][6] = {"1Node", "2Node"};
 
-bool radioNumber = 1; // aqui ele esta definindo a frequencia do radio
+bool radioNumber = 1; // defina aqui se ele é transmissor ou receptor: 1 = receptor, 0 = transmissor
 
-bool transmitindo = false;
+bool transmitindo = false; // se o radioNumber = 1 defina false, else = true
 
-char mensagem[] = "1234567890123456789012345678901234567890"; // payload é praticamente o que ele vai escrever no radio ...quer jogar minecraft hoje a noite depois da chuva de meteoros que vai cair apos o eclipse lunar egipcico.
-char letraRecebida;
+unsigned long packets_sent;
 
-int tamanho = sizeof(mensagem);
+struct payload_t {  // Structure of our payload
+  unsigned long ms;
+  unsigned long counter;
+};
+payload_t payload;
 
 char texto[32] = "";
 int posicaoDoTexto = 0;
@@ -53,7 +56,7 @@ const int linha3 = 56;
 
 void setup() {
   Serial.begin(9600);
-
+  printf_begin();
   while (!Serial) {
   }
 
@@ -63,20 +66,14 @@ void setup() {
   }
 
   Serial.println(F("RF24/examples/GettingStarted"));
-
-  Serial.println(F("Which radio is this? Enter '0' or '1'. Defaults to '0'"));
-  while (!Serial.available()) {
-
-  }
-  char input = Serial.parseInt();
-  radioNumber = input == 1;
   Serial.print(F("radioNumber = "));
   Serial.println((int)radioNumber);
 
-  Serial.println(F("*** PRESS 'T' to begin transmitting to the other node"));
 
-  radio.setPALevel(RF24_PA_LOW);
-
+  radio.setDataRate(RF24_2MBPS);
+  radio.setPALevel(RF24_PA_MAX);
+  radio.setChannel(90);
+  radio.printDetails();
   radio.setPayloadSize(32); // aqui se eu não me engano ele esta vendo o tamanho da mensagem payload
 
   radio.openWritingPipe(address[radioNumber]);
@@ -141,16 +138,12 @@ char cursorXYParaLetra (int X, int Y) {
 }
 
 void loop() {
-
+  
   if (transmitindo) {
-
+    payload = { millis(), packets_sent++ };
     unsigned long start_timer = micros();                  // começa o timer
     bool report = false;
-    int i = 0;
-    while (i < tamanho) {
-      report = radio.write(&mensagem[i], sizeof(char));
-      i = i + 1;
-    }
+    report = radio.write(&payload, sizeof(payload));
     //bool report = radio.write(&payload, sizeof(payload));  //  transmite a mensagem
     unsigned long end_timer = micros();                    //  termina o timer
 
@@ -159,7 +152,7 @@ void loop() {
       Serial.print(F("Time to transmit = "));
       Serial.print(end_timer - start_timer);
       Serial.print(F(" us. Sent: "));
-      Serial.println(mensagem);
+      Serial.println(payload.counter);
       //payload += 0.01;
     } else {
       Serial.println(F("Transmission failed or timed out"));
@@ -173,8 +166,8 @@ void loop() {
     uint8_t pipe;
     if (radio.available(&pipe)) {
 
-      radio.read(&letraRecebida, sizeof(char));
-      Serial.println(letraRecebida);
+      radio.read(&payload, sizeof(payload));
+      Serial.println(payload.counter);
     }
   }
 
@@ -336,11 +329,11 @@ void testscrolltext(void) {
 
   display.fillRect(0, 0, 128, 16, SSD1306_INVERSE);
   display.setTextColor(SSD1306_INVERSE);
-  display.setCursor(1, 9); display.print("OLA AMIGO!!!");
+  display.setCursor(1, 9); display.print(payload.counter);
 
-  display.setCursor(1, 1); display.print("FULANO");
+  display.setCursor(1, 1); display.print("IPAGER "); display.print(radioNumber);
 
-  if (button == 0) {
+  /*if (button == 0) {
     //Serial.print("cursor = ");
     Serial.print(posicaoDoTexto);
     char letra = cursorXYParaLetra(cursorX, cursorY);
@@ -356,7 +349,7 @@ void testscrolltext(void) {
       posicaoDoTexto = posicaoDoTexto + 1;
     }
     Serial.println(texto);
-  }
+  }*/
 
   display.setCursor(1, 18); display.print(texto);
 
