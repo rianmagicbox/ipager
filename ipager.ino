@@ -28,9 +28,9 @@ const int pinButton = A2;
 
 uint8_t address[][6] = {"1Node", "2Node"};
 
-bool radioNumber = 1; // defina aqui se ele é transmissor ou receptor: 1 = receptor, 0 = transmissor
+bool radioNumber = 0; // defina aqui se ele é transmissor ou receptor: 1 = receptor, 0 = transmissor
 
-bool transmitindo = false; // se o radioNumber = 1 defina false, else = true
+bool transmitindo = true; // se o radioNumber = 1 defina false, else = true
 
 unsigned long packets_sent;
 
@@ -53,6 +53,8 @@ int tamX = 7;
 const int linha1 = 36;
 const int linha2 = 46;
 const int linha3 = 56;
+
+bool debug = false;
 
 void setup() {
   Serial.begin(9600);
@@ -92,10 +94,15 @@ void setup() {
     Serial.println(F("SSD1306 allocation failed"));
     for (;;); // Don't proceed, loop forever
   }
-
+  
   display.display();
 
   delay(1000);
+
+  if (analogRead(VRY) < 400) {
+    debug = true;
+    Serial.println("mode DEBUG ON");
+  }
 }
 
 int cursorX = 1;
@@ -140,14 +147,15 @@ char cursorXYParaLetra (int X, int Y) {
 void loop() {
   
   if (transmitindo) {
-    payload = { millis(), packets_sent++ };
-    unsigned long start_timer = micros();                  // começa o timer
-    bool report = false;
-    report = radio.write(&payload, sizeof(payload));
-    //bool report = radio.write(&payload, sizeof(payload));  //  transmite a mensagem
+    bool transmitiu = false;    
+    unsigned long start_timer = micros();                    // começa o timer    
+    if (debug) {
+      payload = { millis(), packets_sent++ };
+      transmitiu = radio.write(&payload, sizeof(payload));   //  transmite a mensagem
+    }
     unsigned long end_timer = micros();                    //  termina o timer
 
-    if (report) {
+    if (transmitiu) {
       Serial.print(F("Transmission successful! "));
       Serial.print(F("Time to transmit = "));
       Serial.print(end_timer - start_timer);
@@ -155,10 +163,14 @@ void loop() {
       Serial.println(payload.counter);
       //payload += 0.01;
     } else {
-      Serial.println(F("Transmission failed or timed out"));
+      if (!debug) {
+        Serial.println(F("Transmission failed or timed out"));
+      }
     }
 
-    delay(1000);
+    if (debug) {
+      delay(1000);
+    }
 
   } else {
 
